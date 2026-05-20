@@ -21,11 +21,11 @@ const SideBarFilter = ({ cities = [], filtersData = {}, initialFilters = {}, onF
     // const [dates, setDates] = useState({ check_in: '', check_out: '' });
 
     const dateInputRef = useRef(null);
-    
 
-    useEffect(() => {
-        console.log('filters:', filters);
-    }, [filters])
+
+    useEffect(() => console.log('filters:', filtersData), []);
+    // useEffect(() => console.log('filters:', filters), [filters]);
+
 
     // useEffect(() => {
     //     if (filters.city_id && filtersData.cities.length > 0) {
@@ -37,54 +37,54 @@ const SideBarFilter = ({ cities = [], filtersData = {}, initialFilters = {}, onF
     // }, [filters.city_id, cities]);
 
 
-    useEffect(() => {
-        if (!dateInputRef.current) return;
+    // useEffect(() => {
+    //     if (!dateInputRef.current) return;
 
-        const fpInstance = flatpickr(dateInputRef.current, {
-            mode: 'range',
-            dateFormat: 'Y-m-d',
-            minDate: 'today',
-            defaultDate: filters.check_in && filters.check_out ? [filters.check_in, filters.check_out] : [],
-            onChange: (selectedDates, dateStr, instance) => {
-                if (selectedDates.length === 1) {
-                    const inDate = selectedDates[0];
-                    instance.set('minDate', new Date(inDate.getTime() + 24 * 60 * 60 * 1000)); // allow only future checkout
+    //     const fpInstance = flatpickr(dateInputRef.current, {
+    //         mode: 'range',
+    //         dateFormat: 'Y-m-d',
+    //         minDate: 'today',
+    //         defaultDate: filters.check_in && filters.check_out ? [filters.check_in, filters.check_out] : [],
+    //         onChange: (selectedDates, dateStr, instance) => {
+    //             if (selectedDates.length === 1) {
+    //                 const inDate = selectedDates[0];
+    //                 instance.set('minDate', new Date(inDate.getTime() + 24 * 60 * 60 * 1000)); // allow only future checkout
 
-                    setFilters(prev => {
-                        const updated = { ...prev, check_in: instance.formatDate(inDate, 'Y-m-d'), check_out: '' };
-                        return updated;
-                    });
-                }
-                
-                if (selectedDates.length === 2) {
-                    const inDate = selectedDates[0];
-                    const outDate = selectedDates[1];
-                    
-                    if (outDate <= inDate) {
-                        alert('Invalid dates');
-                        instance.clear();
-                        return;
-                    }
+    //                 setFilters(prev => {
+    //                     const updated = { ...prev, check_in: instance.formatDate(inDate, 'Y-m-d'), check_out: '' };
+    //                     return updated;
+    //                 });
+    //             }
 
-                    console.log(instance);
-                    setFilters(prev => {
-                        const updated = {
-                            ...prev,
-                            check_in: instance.formatDate(inDate, 'Y-m-d'),
-                            check_out: instance.formatDate(outDate, 'Y-m-d')
-                        };
-                        console.log('Updated filters in onChange:', updated);
-                        if (onFilterApply) onFilterApply(updated);
-                        return updated;
-                    });
-                }
-            }
-        });
+    //             if (selectedDates.length === 2) {
+    //                 const inDate = selectedDates[0];
+    //                 const outDate = selectedDates[1];
 
-        return () => {
-            if (fpInstance) fpInstance.destroy();
-        };
-    }, [filters.check_in, filters.check_out, onFilterApply]);
+    //                 if (outDate <= inDate) {
+    //                     alert('Invalid dates');
+    //                     instance.clear();
+    //                     return;
+    //                 }
+
+    //                 console.log(instance);
+    //                 setFilters(prev => {
+    //                     const updated = {
+    //                         ...prev,
+    //                         check_in: instance.formatDate(inDate, 'Y-m-d'),
+    //                         check_out: instance.formatDate(outDate, 'Y-m-d')
+    //                     };
+    //                     console.log('Updated filters in onChange:', updated);
+    //                     if (onFilterApply) onFilterApply(updated);
+    //                     return updated;
+    //                 });
+    //             }
+    //         }
+    //     });
+
+    //     return () => {
+    //         if (fpInstance) fpInstance.destroy();
+    //     };
+    // }, [filters.check_in, filters.check_out, onFilterApply]);
 
     // Central dynamic event handler replacing "this.form.submit()" triggers
     const handleInputChange = (field, value) => {
@@ -95,7 +95,7 @@ const SideBarFilter = ({ cities = [], filtersData = {}, initialFilters = {}, onF
             return { ...prev, [field]: value }
         });
 
-        if (onFilterApply) onFilterApply();
+        // if (onFilterApply) onFilterApply();
     };
 
     const handleCitySearchInput = (e) => {
@@ -109,7 +109,7 @@ const SideBarFilter = ({ cities = [], filtersData = {}, initialFilters = {}, onF
             };
 
             if (matchedCity || val === '') {
-                if (onFilterApply) onFilterApply(updated);
+                // if (onFilterApply) onFilterApply(updated);
             }
             return updated;
         });
@@ -135,13 +135,18 @@ const SideBarFilter = ({ cities = [], filtersData = {}, initialFilters = {}, onF
             types: []
         };
         setFilters(cleared);
-        if (onFilterApply) onFilterApply(cleared);
+        // if (onFilterApply) onFilterApply(cleared);
     };
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
-        if (onFilterApply) onFilterApply(filters);
+        // if (onFilterApply) onFilterApply(filters);
     };
+
+    useEffect(() => {
+        if (onFilterApply)
+            onFilterApply(filters);
+    }, [filters]);
 
     // Helper formatting for dynamic text render matrix
     const formatDateDisplay = () => {

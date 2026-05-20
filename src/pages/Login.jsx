@@ -1,28 +1,41 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../css/components/login.css'
+import { useGetUserDetailsQuery, useInitializeHandshakeQuery, useLoginMutation } from '../redux/store/apiSlice';
 
 const Login = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        remember: false,
-    });
-    const [errors, setErrors] = useState({});
+
+    const { refetch: triggerHandshake } = useInitializeHandshakeQuery();
+    const [login, { isLoading }] = useLoginMutation();
+    // const { data, isLoading: isUserDetailsLoading, error } = useGetUserDetailsQuery();
+    
+    const [credentials, setCredentials] = useState({ email: '', password: '' });
+    const [errorMessage, setErrorMessage] = useState({});
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
+        const { name, value } = e.target;
+        setCredentials(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({});
+        setErrorMessage('');
 
-        console.log('Submitting login:', formData);
+        try {
+            await triggerHandshake();
+
+            const response = await login(credentials).unwrap();
+            
+            if (response.success || response.status === true) {
+                alert('Logged in successfully!');
+
+                navigate('/review-stay');
+            }
+        } catch (err) {
+            console.error('Login Error Context:', err);
+            setErrorMessage(err?.data?.message || 'Invalid email or password configuration.');
+        }
     };
 
     return (
@@ -40,15 +53,15 @@ const Login = () => {
                             <input
                                 type="email"
                                 name="email"
-                                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                                value={formData.email}
+                                className={`form-control ${errorMessage.email ? 'is-invalid' : ''}`}
+                                value={credentials.email}
                                 onChange={handleChange}
                                 required
                                 autoFocus
                             />
-                            {errors.email && (
-                                <span className="invalid-feedback"><strong>{errors.email[0]}</strong></span>
-                            )}
+                            {/* {errors.email && (
+                                <span className="invalid-feedback"><strong>{errors.email}</strong></span>
+                            )} */}
                         </div>
 
                         <div className="mb-4">
@@ -56,20 +69,20 @@ const Login = () => {
                             <input
                                 type="password"
                                 name="password"
-                                className={`form-control ${errors.password ? 'is-invalid' : ''}`}
-                                value={formData.password}
+                                className={`form-control ${errorMessage.password ? 'is-invalid' : ''}`}
+                                value={credentials.password}
                                 onChange={handleChange}
                                 required
                             />
                             <Link to="/forgot-password" Brass class="small text-decoration-none" style={{ color: '#a18151' }}>
                                 Forgot Password ?
                             </Link>
-                            {errors.password && (
+                            {/* {errors.password && (
                                 <span className="invalid-feedback"><strong>{errors.password[0]}</strong></span>
-                            )}
+                            )} */}
                         </div>
 
-                        <div className="mb-4 form-check">
+                        {/* <div className="mb-4 form-check">
                             <input
                                 type="checkbox"
                                 className="form-check-input"
@@ -81,7 +94,7 @@ const Login = () => {
                             <label className="form-check-label small text-uppercase fw-semibold" htmlFor="remember">
                                 Keep me signed in
                             </label>
-                        </div>
+                        </div> */}
 
                         <button type="submit" className="btn btn-brand btn-lg w-100 py-3 fw-bold mb-4">
                             Sign In

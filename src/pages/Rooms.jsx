@@ -75,8 +75,10 @@ const Rooms = () => {
         if (node) observer.current.observe(node);
     }, [isFetching, hasMore]);
 
-    const handleAddToCartClick = async (roomId, hotelId, checkIn = null, checkOut = null) => {
+    const handleAddToCartClick = async (roomId, hotelId, checkIn = null, checkOut = null, discount = null) => {
 
+        // console.log(discount);
+        
         try {
             const payload = { room_detail_id: roomId, hotel_id: hotelId };
             if (checkIn && checkOut) {
@@ -84,14 +86,23 @@ const Rooms = () => {
                 payload.check_out = checkOut;
             }
 
+            if(discount && discount.coupon_code) {
+                payload.coupon_code = discount.coupon_code;
+                payload.offer_message = discount.offer;
+                payload.offer_type = discount.offer_type;
+            }
+            
+            console.log(payload);
             const response = await addRoomToStay(payload).unwrap();
+            console.log(response);
+            
 
             if (response.show_modal) {
                 setModalState({ show: true, roomId: response.room_id, hotelId: response.hotel_id });
             } else {
                 setModalState({ show: false, roomId: null, hotelId: null });
-                setCheckIn(checkIn);
-                setCheckOut(checkOut);
+                // setCheckIn(checkIn);
+                // setCheckOut(checkOut);
                 alert('Room added to your stay list successfully!');
             }
         } catch (err) {
@@ -191,7 +202,7 @@ const Rooms = () => {
                                                         key={room.id + Date.now()}
                                                         room={{ ...room, hotel: group.hotel }}
                                                         currentStayHotelId={currentStayHotelId}
-                                                        onChooseToBook={(rId, hId) => handleAddToCartClick(rId, hId)}
+                                                        onChooseToBook={(rId, hId, discount) => handleAddToCartClick(rId, hId, null, null, discount)}
                                                     />
                                                 ))}
                                             </div>

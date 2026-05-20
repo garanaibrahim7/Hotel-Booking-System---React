@@ -11,6 +11,8 @@ const RoomCard = ({ room, currentStayHotelId, onChooseToBook }) => {
         navigate(`/rooms/${room.id}`);
     };
 
+    // console.log(room);
+    
     const hasOffer = !!room.offer;
     const isDifferentHotel = currentStayHotelId !== null && currentStayHotelId !== room.hotel_id;
 
@@ -105,7 +107,7 @@ const RoomCard = ({ room, currentStayHotelId, onChooseToBook }) => {
                         ) : (
                             <button
                                 type="button"
-                                onClick={() => onChooseToBook(room.id, room.hotel_id)}
+                                onClick={() => onChooseToBook(room.id, room.hotel_id, room.coupon_code ? { coupon_code: room.coupon_code, offer: room.offer, offer_type: room.offer_type } : null)}
                                 className="btn-classic btn-classic-dark px-2 py-2 text-uppercase"
                             >
                                 Choose to Book

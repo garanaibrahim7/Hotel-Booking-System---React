@@ -22,13 +22,31 @@ export const hotelApi = createApi({
     tagTypes: ['StaySummary'],
     endpoints: (builder) => ({
 
+        login: builder.mutation({
+            query: (credentials) => ({
+                url: 'login',
+                method: 'POST',
+                body: credentials,
+            }),
+            invalidatesTags: ['StaySummary', 'StayRoomsCount'],
+        }),
+
         initializeHandshake: builder.query({
-            query: () => 'sanctum/csrf-cookie',
+            query: () => ({
+                url: 'http://localhost:8000/sanctum/csrf-cookie'
+            }),
         }),
 
         getRooms: builder.query({
             query: (params) => ({
                 url: 'rooms',
+                params,
+            }),
+        }),
+
+        getUserDetails: builder.query({
+            query: (params) => ({
+                url: 'user',
                 params,
             }),
         }),
@@ -43,6 +61,15 @@ export const hotelApi = createApi({
             providesTags: ['StayRoomsCount'],
         }),
 
+        updateStayDates: builder.mutation({
+            query: (payload) => ({
+                url: 'booking/stay/update_dates',
+                method: 'POST',
+                body: payload,
+            }),
+            invalidatesTags: ['StaySummary'],
+        }),
+
         addRoomToStay: builder.mutation({
             query: (payload) => ({
                 url: 'booking/stay/add',
@@ -51,13 +78,41 @@ export const hotelApi = createApi({
             }),
             invalidatesTags: ['StaySummary', 'StayRoomsCount'],
         }),
+
+        getCheckoutDetails: builder.query({
+            query: () => 'booking/checkout',
+            providesTags: ['CheckoutDetails'],
+        }),
+
+        applyCoupon: builder.mutation({
+            query: (payload) => ({
+                url: 'booking/apply-coupon',
+                method: 'POST',
+                body: payload,
+            }),
+            invalidatesTags: ['CheckoutManifest'],
+        }),
+
+        removeCoupon: builder.mutation({
+            query: () => ({
+                url: 'booking/remove-coupon',
+                method: 'POST',
+            }),
+            invalidatesTags: ['CheckoutManifest'],
+        }),
     }),
 });
 
 export const {
+    useLoginMutation,
     useInitializeHandshakeQuery,
     useGetRoomsQuery,
     useGetStaySummaryQuery,
     useGetStayRoomsCountQuery,
-    useAddRoomToStayMutation
+    useUpdateStayDatesMutation,
+    useAddRoomToStayMutation,
+    useGetUserDetailsQuery,
+    useGetCheckoutDetailsQuery,
+    useApplyCouponMutation,
+    useRemoveCouponMutation,
 } = hotelApi;

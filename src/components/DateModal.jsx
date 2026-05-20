@@ -15,6 +15,8 @@ const DateModal = ({ show, modalData, onClose, onConfirm }) => {
     const handleInputChange = (e) => {
         setDates(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
+    console.log("modelData: " + modalData);
+    
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
