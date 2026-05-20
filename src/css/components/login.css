@@ -1,0 +1,35 @@
+.form-control,
+.btn,
+.shadow-lg {
+    border-radius: 0 !important;
+}
+
+.btn-brand {
+    background-color: #bca47f;
+    color: white;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: 0.3s;
+}
+
+.btn-brand:hover {
+    background-color: #a8926d;
+    color: white;
+}
+
+.form-control {
+    border: 1px solid #e0e0e0;
+    padding: 12px;
+    background-color: #fff;
+}
+
+.form-control:focus {
+    border-color: #bca47f;
+    box-shadow: none;
+}
+
+.form-check-input:checked {
+    background-color: #bca47f;
+    border-color: #bca47f;
+}
