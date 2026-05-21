@@ -7,6 +7,7 @@ import Layout from '../components/Layout';
 import Rooms from '../pages/Rooms';
 import StaySummary from '../pages/StaySummary';
 import Checkout from '../pages/Checkout';
+import Booking from '../pages/Booking';
 
 export const router = createBrowserRouter([
     {
@@ -18,6 +19,8 @@ export const router = createBrowserRouter([
             { path: '/login', element: <Login /> },
             { path: '/stay-list', element: <StaySummary /> },
             { path: '/checkout', element: <Checkout /> },
+            { path: '/booking-status', element: <Booking /> },
+            { path: '/booking-status/:id', element: <Booking /> },
             {
                 element: <ProtectedRoute />,
                 children: [

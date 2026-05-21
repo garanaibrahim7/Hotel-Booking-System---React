@@ -100,6 +100,21 @@ export const hotelApi = createApi({
             }),
             invalidatesTags: ['CheckoutManifest'],
         }),
+
+        processCheckout: builder.mutation({
+            query: (payload) => ({
+                url: 'book',
+                method: 'POST',
+                body: payload,
+            }),
+            providesTags: ['ProcessCheckout'],
+        }),
+        getBookingDetails: builder.query({
+            query: (bookingId) => `booking/${bookingId}`,
+            providesTags: (result, error, bookingId) => [
+                { type: 'BookingDetails', id: bookingId }
+            ],
+        }),
     }),
 });
 
@@ -115,4 +130,6 @@ export const {
     useGetCheckoutDetailsQuery,
     useApplyCouponMutation,
     useRemoveCouponMutation,
+    useProcessCheckoutMutation,
+    useGetBookingDetailsQuery,
 } = hotelApi;

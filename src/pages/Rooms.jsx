@@ -57,7 +57,7 @@ const Rooms = () => {
 
             // setCheckInOut(checkIn.getDate() + ' - ' + checkOut.getDate() + ' ' + checkOut.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }));
 
-            console.log(activeFilters);
+            // console.log(activeFilters);
         }
     }, [apiResponse, page, activeFilters]);
 

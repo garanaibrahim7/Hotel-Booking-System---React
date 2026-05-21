@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useApplyCouponMutation, useRemoveCouponMutation, useGetCheckoutDetailsQuery } from '../redux/store/apiSlice';
+import { useApplyCouponMutation, useRemoveCouponMutation, useGetCheckoutDetailsQuery, useProcessCheckoutMutation } from '../redux/store/apiSlice';
 import GuestDetailsForm from '../components/checkout/GuestDetailsForm';
 import SidePanel from '../components/checkout/SidePanel';
+import { useNavigate } from 'react-router-dom';
 
 
 const Checkout = () => {
     const { data: serverData, isLoading, error } = useGetCheckoutDetailsQuery();
+    // const { data: processCheckoutData, isLoading: bookingProcessing, error: bookingProcessError } = useProcessCheckoutMutation();
+    const [processCheckout, { isLoading: bookingProcessing, error: bookingProcessError }] = useProcessCheckoutMutation();
+
     const [applyCoupon] = useApplyCouponMutation();
     const [removeCoupon] = useRemoveCouponMutation();
-
-    // console.log(serverData);
 
     const data = serverData?.data;
 
     const [guestInfo, setGuestInfo] = useState({ name: '', email: '', phone: '', instruction: '' });
+    const [checkoutPayload, setCheckoutPayload] = useState(null);
+    const [couponCode, setCouponCode] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [couponErrorMsg, setCouponErrorMsg] = useState('');
 
-    // Pre-populate input fields with active user defaults from manifest metadata session
+    const navigate = useNavigate();
     useEffect(() => {
         if (serverData?.success) {
-            // Mocked or mapped straight from logged-in server variables contexts
+            setCheckoutPayload(data);
             setGuestInfo(prev => ({
                 ...prev,
                 name: data?.user?.name || '',
@@ -38,9 +42,6 @@ const Checkout = () => {
             </div>
         );
     }
-
-    const checkoutPayload = data;
-    const coupon_code = data.discountCode;
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
@@ -63,11 +64,18 @@ const Checkout = () => {
                 setCouponErrorMsg(response.error || 'Invalid Coupon Code configuration.');
             }
             console.log(response);
-            // ----------------------------------------------------------------------
-            // ----------------------------------------------------------------------
-            // ------------------- Have to Manage This ------------------------------
-            // ----------------------------------------------------------------------
-            // ----------------------------------------------------------------------
+
+            if (response.status === 'success') {
+                setCheckoutPayload(prev => ({
+                    ...prev,
+                    discountId: response.data.coupon_id,
+                    discountCode: response.data.coupon_code,
+                    discountAmount: response.data.discount_amount,
+                    finalTotal: response.data.final_converted_amount,
+                    finalActualTotal: response.data.final_amount,
+                }));
+                console.log(checkoutPayload);
+            }
         } catch (err) {
             setCouponErrorMsg('Network failure parsing discount token.');
         }
@@ -76,7 +84,17 @@ const Checkout = () => {
     const handleCouponRemove = async () => {
         setCouponErrorMsg('');
         try {
-            await removeCoupon().unwrap();
+            const response = await removeCoupon().unwrap();
+            console.log(response);
+            setCheckoutPayload(prev => ({
+                ...prev,
+                discountId: null,
+                discountCode: null,
+                discountAmount: 0,
+                finalTotal: response.data.finalTotal,
+                // finalActualTotal: response.data.final_amount,
+            }));
+
         } catch (err) {
             console.error("Failed clear coupon endpoint allocation:", err);
         }
@@ -86,60 +104,78 @@ const Checkout = () => {
         e.preventDefault();
         const errors = {};
 
-        // Basic standard form validations lines mapping backend constraints
-        if (!guestInfo.name.trim()) errors.name = 'Full Client Verification name string field required.';
-        if (!guestInfo.email.trim()) errors.email = 'Email address line context parameter required.';
-        if (!guestInfo.phone.trim()) errors.phone = 'Active primary contact phone context allocation required.';
+        if (!guestInfo.name.trim())
+            errors.name = 'Full Client Verification name string field required.';
+        if (!guestInfo.email.trim())
+            errors.email = 'Email address line context parameter required.';
+        if (!guestInfo.phone.trim())
+            errors.phone = 'Active primary contact phone context allocation required.';
 
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
         }
 
-        // Prepare complete form submission body
         const bookingPayload = {
             ...guestInfo,
             check_in: checkoutPayload.checkIn,
             check_out: checkoutPayload.checkOut,
-            coupon_code: coupon_code || '',
+            coupon_code: checkoutPayload.discountCode || '',
             payment_method: 'stripe',
             room_requirements: checkoutPayload.rooms.map(room => `${room.id}:1`),
         };
 
-        console.log("Dispatching secure complete booking sequence manifest:", bookingPayload);
-        // Wire up an explicit route redirection window line or trigger your final post-booking mutation:
-        // window.location.href = 'http://localhost:8000/booking/checkout/process';
-        alert('Booking processing initialized securely via structural payload!');
+
+        try {
+            // console.log('Payload:', bookingPayload)
+            const response = await processCheckout(bookingPayload).unwrap();
+            if (response.success || response.status === 'success') {
+                navigate('/booking-status', {
+                    state: {
+                        isInitialized: true,
+                        payload: response.data
+                        // booking_id: response.data.booking_id,
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Payment Initialization Error: ", err);
+            alert(err?.data?.message || 'Payment Initializatoin failed, Please try again.');
+        }
+
+        // window.location.href = '';
+        // alert('Booking processing initialized securely via structural payload!');
     };
 
-    return (
-        <div className="container py-5 mt-5">
-            <div className="row g-0 shadow-lg border">
+    if (checkoutPayload !== null)
+        return (
+            <div className="container py-5 mt-5">
+                <div className="row g-0 shadow-lg border">
 
-                {/* Left Input Section Column */}
-                <div className="col-lg-8 bg-white">
-                    <GuestDetailsForm
-                        formData={guestInfo}
-                        onChange={handleFormChange}
-                        onSubmit={handleBookingVerificationSubmit}
-                        errors={formErrors}
-                    />
+                    {/* Left Input Section Column */}
+                    <div className="col-lg-8 bg-white">
+                        <GuestDetailsForm
+                            formData={guestInfo}
+                            onChange={handleFormChange}
+                            onSubmit={handleBookingVerificationSubmit}
+                            errors={formErrors}
+                        />
+                    </div>
+
+                    {/* Right Aggregate Summary Side Column Panel Box */}
+                    <div className="col-lg-4 bg-light">
+                        <SidePanel
+                            payload={checkoutPayload}
+                            couponCode={checkoutPayload.discountCode}
+                            onApplyCoupon={handleCouponApply}
+                            onRemoveCoupon={handleCouponRemove}
+                            couponError={couponErrorMsg}
+                        />
+                    </div>
+
                 </div>
-
-                {/* Right Aggregate Summary Side Column Panel Box */}
-                <div className="col-lg-4 bg-light">
-                    <SidePanel
-                        payload={checkoutPayload}
-                        couponCode={coupon_code}
-                        onApplyCoupon={handleCouponApply}
-                        onRemoveCoupon={handleCouponRemove}
-                        couponError={couponErrorMsg}
-                    />
-                </div>
-
             </div>
-        </div>
-    );
+        );
 };
 
 export default Checkout;
