@@ -1,30 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useGetStayRoomsCountQuery } from '../redux/store/apiSlice';
+import { useGetStayRoomsCountQuery, useGetUserQuery } from '../redux/store/apiSlice';
 
 const NavBar = () => {
     const location = useLocation();
     const { data: apiResponse, isFetching, isLoading: isInitialLoading } = useGetStayRoomsCountQuery();
-    const isAuthenticated = false;
     const [roomsCount, setRoomsCount] = useState(0);
+    const { data: user, isSuccess: isAuthenticated } = useGetUserQuery(undefined, {
+        refetchOnMountOrArgChange: false,
+    });
 
     const menuItems = [
         { title: 'Home', path: '/' },
         { title: 'Hotels', path: '/hotels' },
         { title: 'Rooms', path: '/rooms' },
+        { title: 'Bookings', path: '/bookings' },
         { title: 'Stay Summary', path: '/stay-list' },
-        { title: isAuthenticated ? 'Profile' : 'Login', path: isAuthenticated ? '/profile' : '/login' }
+        // { title: isAuthenticated ? 'Profile' : 'Login', path: isAuthenticated ? '/profile' : '/login' }
     ];
+
+    if(!isAuthenticated){
+        menuItems.push({ title: 'Login', path: '/login' });
+    }
 
     const isActive = (path) => location.pathname === path ? 'active-link' : '';
 
 
     useEffect(() => {
-        if (!isInitialLoading && !isFetching ) {
-            setRoomsCount(apiResponse.rooms_count);
+        if (!isInitialLoading && !isFetching) {
+            setRoomsCount(apiResponse?.rooms_count ?? 0);
         }
-        // console.log('Navbar useEffet is Executing');        
-    }, [isFetching])
+    }, [isFetching]);
+
+    if (location.pathname === '/home' || location.pathname === '/') {
+        document.body.classList.add('is-home');
+        window.addEventListener('scroll', function () {
+            const nav = document.querySelector('.custom-nav');
+            if (window.scrollY > 700) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    } else {
+        document.body.classList.remove('is-home');
+    }
 
     return (
         <>

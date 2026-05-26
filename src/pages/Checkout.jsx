@@ -36,11 +36,12 @@ const Checkout = () => {
 
     if (isLoading) return <div className="container py-5 mt-5 text-center"><h4>Assembling Checkout Parameters...</h4></div>;
     if (error || !serverData?.success) {
-        return (
-            <div className="container py-5 mt-5 text-center text-danger">
-                <h4>{error?.message || 'Failed initializing checkout context manifest. Verification failed.'}</h4>
-            </div>
-        );
+        navigate('/stay-list')
+        // return (
+        //     <div className="container py-5 mt-5 text-center text-danger">
+        //         <h4>{error?.message || 'Failed initializing checkout context manifest. Verification failed.'}</h4>
+        //     </div>
+        // );
     }
 
     const handleFormChange = (e) => {

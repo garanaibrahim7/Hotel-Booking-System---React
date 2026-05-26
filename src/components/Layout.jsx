@@ -8,7 +8,7 @@ import '../css/global.css'
 import '../css/header.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import 'bootstrap-icons/font/bootstrap-icons.json';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const Layout = () => {
   return (

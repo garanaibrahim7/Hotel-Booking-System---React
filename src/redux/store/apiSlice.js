@@ -31,6 +31,10 @@ export const hotelApi = createApi({
             invalidatesTags: ['StaySummary', 'StayRoomsCount'],
         }),
 
+        getUser: builder.query({
+            query: () => 'user',
+        }),
+
         initializeHandshake: builder.query({
             query: () => ({
                 url: 'http://localhost:8000/sanctum/csrf-cookie'
@@ -41,6 +45,12 @@ export const hotelApi = createApi({
             query: (params) => ({
                 url: 'rooms',
                 params,
+            }),
+        }),
+
+        getCities: builder.query({
+            query: () => ({
+                url: 'cities',
             }),
         }),
 
@@ -79,6 +89,14 @@ export const hotelApi = createApi({
             invalidatesTags: ['StaySummary', 'StayRoomsCount'],
         }),
 
+        removeRoomFromStay: builder.mutation({
+            query: (roomId) => ({
+                url: `booking/stay/remove/${roomId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['StaySummary'], 
+        }),
+
         getCheckoutDetails: builder.query({
             query: () => 'booking/checkout',
             providesTags: ['CheckoutDetails'],
@@ -115,21 +133,29 @@ export const hotelApi = createApi({
                 { type: 'BookingDetails', id: bookingId }
             ],
         }),
+        getBookings: builder.query({
+            query: () => 'bookings',
+            providesTags: ['Bookings'],
+        }),
     }),
 });
 
 export const {
     useLoginMutation,
     useInitializeHandshakeQuery,
+    useGetUserQuery,
+    useGetCitiesQuery,
     useGetRoomsQuery,
     useGetStaySummaryQuery,
     useGetStayRoomsCountQuery,
     useUpdateStayDatesMutation,
     useAddRoomToStayMutation,
+    useRemoveRoomFromStayMutation,
     useGetUserDetailsQuery,
     useGetCheckoutDetailsQuery,
     useApplyCouponMutation,
     useRemoveCouponMutation,
     useProcessCheckoutMutation,
     useGetBookingDetailsQuery,
+    useGetBookingsQuery
 } = hotelApi;

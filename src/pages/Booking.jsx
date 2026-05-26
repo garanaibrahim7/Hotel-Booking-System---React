@@ -7,19 +7,18 @@ import '../echo';
 
 const Booking = () => {
     const location = useLocation();
-    const navigate = useNavigate(); // Hook for programmatic navigation
+    const navigate = useNavigate();
     const { id: urlBookingId } = useParams();
 
     const routerState = location.state || {};
     const isInitialized = routerState.isInitialized || false;
-    const initialPayload = routerState.payload || null;    
 
-    // Manage Booking ID State
+    const initialPayload = routerState.payload?.data || routerState.payload || null;
+
     const [bookingId, setBookingId] = useState(
         initialPayload?.booking_id || initialPayload?.id || urlBookingId || ''
     );
 
-    // Sync ID if URL or Payload changes
     useEffect(() => {
         if (initialPayload?.booking_id || initialPayload?.id) {
             setBookingId(initialPayload.booking_id || initialPayload.id);
@@ -28,12 +27,10 @@ const Booking = () => {
         }
     }, [initialPayload, urlBookingId]);
 
-    // RTK Query Hook
     const { data: bookingData, isLoading, error, refetch } = useGetBookingDetailsQuery(bookingId, {
         skip: isInitialized || !bookingId,
     });
 
-    // Real-time WebSocket Listener
     useEffect(() => {
         if (!bookingId) return;
 
@@ -41,29 +38,22 @@ const Booking = () => {
 
         channel.listen('.PaymentStatusProcessed', (e) => {
             console.log('Update received via WebSockets:', e);
-            
+
             if (e.success) {
-                // DIRECT NAVIGATE OVERRIDE:
-                // Force route change to clear the initialization state and reload components natively
-                navigate(`/booking-status/${bookingId}`, { 
-                    replace: true, // Replaces history entry so back-button behavior remains clean
-                    state: { isInitialized: false } // Wipe out the initialization flag completely
+                navigate(`/booking-status/${bookingId}`, {
+                    replace: true,
+                    state: { isInitialized: false, payload: null }
                 });
 
-                // If already on the status route, trigger manual cache invalidation
-                if (!isInitialized) {
-                    refetch();
-                }
+                refetch();
             }
         });
 
-        // Cleanup listener on unmount
         return () => {
             window.Echo.leaveChannel(`booking-tracker.${bookingId}`);
         };
-    }, [bookingId, isInitialized, navigate, refetch]);
+    }, [bookingId, navigate, refetch]);
 
-    // View A: Ready for Payment
     if (isInitialized && initialPayload?.payment_url) {
         return (
             <div className="container py-5 mt-4">
@@ -72,7 +62,6 @@ const Booking = () => {
         );
     }
 
-    // View B: Loading Data from Server
     if (isLoading) {
         return (
             <div className="container py-5 mt-5 text-center text-dark">
@@ -81,7 +70,6 @@ const Booking = () => {
         );
     }
 
-    // View C: Error State
     if (error) {
         return (
             <div className="container py-5 mt-5 text-center text-danger">
@@ -90,7 +78,6 @@ const Booking = () => {
         );
     }
 
-    // View D: Success View with Real-Time Data
     if (bookingData) {
         return (
             <div className="container py-5 mt-4">
@@ -99,7 +86,6 @@ const Booking = () => {
         );
     }
 
-    // View E: Fallback / Empty State
     return (
         <div className="container py-5 mt-5 text-center text-muted">
             <i className="bi bi-folder-x display-1 opacity-25"></i>

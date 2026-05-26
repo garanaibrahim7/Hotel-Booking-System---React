@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { useGetStaySummaryQuery, useUpdateStayDatesMutation } from '../redux/store/apiSlice';
+import { useGetStaySummaryQuery, useRemoveRoomFromStayMutation, useUpdateStayDatesMutation } from '../redux/store/apiSlice';
 import SummaryRoomCard from '../components/summary/SummaryRoomCard';
 import SummaryDatePickerCard from '../components/summary/SummaryDatePickerCard';
 import SummaryPricingPanel from '../components/summary/SummaryPricingPanel';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const StaySummary = () => {
 
     const navigate = useNavigate();
     const { data: serverPayload, isLoading, error } = useGetStaySummaryQuery();
     const [updateDates] = useUpdateStayDatesMutation();
+    const [removeItem, { isLoading: isRemoving }] = useRemoveRoomFromStayMutation();
 
     const [alertConfig, setAlertConfig] = useState({ show: false, message: '' });
 
@@ -38,16 +39,20 @@ const StaySummary = () => {
         }
     };
 
-    const handleItemRemoval = (itemId) => {
-        alert('Item removal is currently disabled in this demo.');
-        // window.location.href = `http://localhost:8000/booking/stay/remove/${itemId}`;
+    const handleItemRemoval = async (itemId) => {
+        try {
+            await removeItem(itemId).unwrap();
+            console.log("deleted");
+            
+        } catch (error) {
+            console.error("Failed to delete item:", error);
+        }
     };
 
     const executeCheckoutSequence = () => {
         navigate('/checkout');
     };
 
-    // Render empty array placeholder matching original blade template matrix condition
     if (itemsArray.length === 0 || !summary) {
         return (
             <div className="container py-5 mt-5">
@@ -58,9 +63,8 @@ const StaySummary = () => {
                         </div>
                         <h2 className="fw-bold text-uppercase mb-3" style={{ letterSpacing: '2px' }}>Your Stay is Empty</h2>
                         <p className="text-muted mb-5">Select a room to begin your luxury experience.</p>
-                        <a href="http://localhost:8000/hotels/explore" className="btn btn-dark px-5 py-3 rounded-0 text-uppercase fw-bold">
-                            Explore Hotels
-                        </a>
+
+                        <Link className="btn btn-dark px-5 py-3 rounded-0 text-uppercase fw-bold" to="/hotels/explore">Explore Hotels</Link>
                     </div>
                 </div>
             </div>
@@ -95,7 +99,7 @@ const StaySummary = () => {
                     {itemsArray.map((details, id) => (
                         <SummaryRoomCard
                             key={id}
-                            id={id}
+                            id={details.id}
                             details={details}
                             currency={summary.currency}
                             onRemove={handleItemRemoval}
@@ -111,17 +115,14 @@ const StaySummary = () => {
                     )}
                 </div>
 
-                {/* Right Side: Stay summary configurations layout panel */}
                 <div className="col-lg-4 mt-4 mt-lg-0">
 
-                    {/* Integrated isolated Date Picker Box layout block */}
                     <SummaryDatePickerCard
                         checkIn={checkIn}
                         checkOut={checkOut}
                         onDateRangeSelected={handleDatesSubmit}
                     />
 
-                    {/* Core Warning Alert Messaging box */}
                     {summary.error_message && (
                         <div className="alert alert-warning border-0 shadow-sm d-flex align-items-center rounded-0">
                             <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -129,7 +130,6 @@ const StaySummary = () => {
                         </div>
                     )}
 
-                    {/* Custom reactive dynamic message banner layer */}
                     {alertConfig.show && (
                         <div className="alert alert-danger d-flex align-items-center rounded-0 border-0 shadow-sm mb-3">
                             <i className="bi bi-exclamation-triangle-fill me-3"></i>
@@ -138,7 +138,6 @@ const StaySummary = () => {
                         </div>
                     )}
 
-                    {/* Core pricing logic breakdown box display */}
                     <SummaryPricingPanel
                         summary={summary}
                         showDiscount={!!stay.discount_id || summary.totalSavings > 0}

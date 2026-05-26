@@ -66,7 +66,7 @@ const RoomCard = ({ room, currentStayHotelId, onChooseToBook }) => {
                                             {room.offer_type} Off
                                         </span>
                                     </div>
-                                    <h4 className="text-primary fw-bold mb-0">
+                                    <h4 className="text-classic fw-bold mb-0">
                                         {room.user_currency_symbol} {Number(room.offer_price).toFixed(2)}
                                     </h4>
                                     <div className="text-muted small">
@@ -76,7 +76,7 @@ const RoomCard = ({ room, currentStayHotelId, onChooseToBook }) => {
                                 </>
                             ) : (
                                 <>
-                                    <h4 className="text-primary fw-bold mb-0">
+                                    <h4 className="text-classic fw-bold mb-0">
                                         {room.user_currency_symbol}{Number(room.converted_price).toFixed(2)}
                                     </h4>
                                     <small className="text-muted">/ per night</small>

@@ -9,12 +9,11 @@ const DatePicker = ({ dates, setDates }) => {
   useEffect(() => {
     if (!flatpickrRef.current) return;
 
-    // 1. Initialize Flatpickr strictly ONCE
     fpInstance.current = flatpickr(flatpickrRef.current, {
       mode: 'range',
       dateFormat: 'Y-m-d',
       minDate: 'today',
-      // Load current dates into the picker instance on initialization
+      
       defaultDate: dates.check_in && dates.check_out ? [dates.check_in, dates.check_out] : [],
       
       onChange: (selectedDates, dateStr, instance) => {        
@@ -32,9 +31,8 @@ const DatePicker = ({ dates, setDates }) => {
         fpInstance.current.destroy();
       }
     };
-  }, [setDates]); // Removed 'dates' dependency to stop instance rebuilding mid-selection
-
-  // 2. Keep the display UI updated if the parent clears the filters from the outside
+  }, [setDates]);
+  
   useEffect(() => {
     if (fpInstance.current) {
       if (dates.check_in && dates.check_out) {
@@ -45,7 +43,6 @@ const DatePicker = ({ dates, setDates }) => {
     }
   }, [dates.check_in, dates.check_out]);
 
-  // Formats display matching your screenshot design layout
   const formatDateDisplay = () => {
     if (dates.check_in && dates.check_out) {
       const options = { day: '2-digit', month: 'short' };

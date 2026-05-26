@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import RoomCard from '../components/RoomCard';
 import DateModal from '../components/DateModal';
 import { useGetRoomsQuery, useAddRoomToStayMutation, useGetStaySummaryQuery } from '../redux/store/apiSlice';
 import SideBarFilter from '../components/SideBarFilter';
+import SearchForm from '../components/Home/SearchForm';
 
 
 const Rooms = () => {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const { data: summary } = useGetStaySummaryQuery();
     const currentStayHotelId = summary?.hotel_id || null;
 
     const [checkInOut, setCheckInOut] = useState(null);
-    const [activeFilters, setActiveFilters] = useState({});
 
     const [hotelGroups, setHotelGroups] = useState([]);
     const [page, setPage] = useState(1);
@@ -21,14 +21,22 @@ const Rooms = () => {
     const [modalState, setModalState] = useState({ show: false, roomId: null, hotelId: null });
 
     const queryParams = { ...Object.fromEntries([...searchParams]), page };
-    const { data: apiResponse, isFetching, isLoading: isInitialLoading } = useGetRoomsQuery(activeFilters);
+    // console.log(queryParams);
+    const filters = useMemo(
+        () => ({
+            ...Object.fromEntries([...searchParams]),
+            page
+        }),
+        [searchParams, page]
+    );
+
+    // console.log(searchParams);
+
+
+    const { data: apiResponse, isFetching, isLoading: isInitialLoading } = useGetRoomsQuery(filters);
 
     const [addRoomToStay] = useAddRoomToStayMutation();
 
-    // useEffect(() => {
-    //     console.log(activeFilters);
-    // }, [activeFilters]);
-        
 
     useEffect(() => {
         setHotelGroups([]);
@@ -59,7 +67,7 @@ const Rooms = () => {
 
             // console.log(activeFilters);
         }
-    }, [apiResponse, page, activeFilters]);
+    }, [apiResponse, page, searchParams]);
 
     const observer = useRef();
     const lastHotelElementRef = useCallback(node => {
@@ -78,7 +86,7 @@ const Rooms = () => {
     const handleAddToCartClick = async (roomId, hotelId, checkIn = null, checkOut = null, discount = null) => {
 
         // console.log(discount);
-        
+
         try {
             const payload = { room_detail_id: roomId, hotel_id: hotelId };
             if (checkIn && checkOut) {
@@ -86,16 +94,16 @@ const Rooms = () => {
                 payload.check_out = checkOut;
             }
 
-            if(discount && discount.coupon_code) {
+            if (discount && discount.coupon_code) {
                 payload.coupon_code = discount.coupon_code;
                 payload.offer_message = discount.offer;
                 payload.offer_type = discount.offer_type;
             }
-            
-            console.log(payload);
+
+            // console.log(payload);
             const response = await addRoomToStay(payload).unwrap();
-            console.log(response);
-            
+            // console.log(response);
+
 
             if (response.show_modal) {
                 setModalState({ show: true, roomId: response.room_id, hotelId: response.hotel_id });
@@ -126,6 +134,7 @@ const Rooms = () => {
                         <h2 className="headingfonts fw-bold text-muted">No Rooms Found Matching Your Criteria</h2>
                         <p className="text-secondary mt-2">Try adjusting your filters, dates, or search range.</p>
                     </div>
+                    <SearchForm cities={apiResponse.filters.cities ?? null} />
                 </div>
             ) : (
                 <>
@@ -140,7 +149,7 @@ const Rooms = () => {
                                         </ol>
                                     </nav>
                                     <h2 className="headingfonts fw-bold display-6 mb-0">
-                                        Discover Stays in <span className="text-primary">{cityName}</span>
+                                        Discover Stays in <span className="text-classic">{cityName}</span>
                                     </h2>
                                     <div className="mt-2 text-muted small">
                                         {checkInOut ? (
@@ -170,7 +179,7 @@ const Rooms = () => {
                                 cities={apiResponse.filters.cities ?? null}
                                 filtersData={apiResponse.filters}
                                 initialFilters={apiResponse.filters}
-                                onFilterApply={(updatedFilters) => setActiveFilters(updatedFilters)}
+                                onFilterApply={(updatedFilters) => setSearchParams(updatedFilters)}
                             />
                         </div>
 
